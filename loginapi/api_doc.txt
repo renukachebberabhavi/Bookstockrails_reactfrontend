@@ -1,0 +1,155 @@
+loginapi proj:
+
+for hashing password and authentication:
+
+steps:
+
+1.Create proj with postgrel"
+
+	rails new loginapi -d postgresql
+2.change database.yml in config foler:
+	change db name
+	uncomment username, password, host and port lines in the same.
+	change username and password fileds as per yours .
+
+3.on command prompt open postgresql:
+
+	psql -U postgres
+	create database logindb
+	\c logindb
+	\z           //access to all db
+	\dt         //did not find any realtions
+
+4.In migration file under create table,
+	add
+ 	
+	t.string :name
+      t.string :email
+      t.string :address
+      t.string :password_digest
+run  rails db:migrate
+
+5.Come to cmd pompt of postgres and check \dt, you  will see users table
+
+postgres cmd prompt output:
+
+logindb=# \dt
+                List of relations
+ Schema |         Name         | Type  |  Owner
+--------+----------------------+-------+----------
+ public | ar_internal_metadata | table | postgres
+ public | schema_migrations    | table | postgres
+ public | users                | table | postgres
+(3 rows)
+
+6. check if all coloumns are added in table,
+logindb=# select * from users;
+ id | name | email | address | password_digest | phone_number | role_id | created_at | updated_at
+----+------+-------+---------+-----------------+--------------+---------+------------+------------
+(0 rows)
+
+7.uncomment gem "bcrypt", "~> 3.1.7" in gemfile from db directory in proj
+ go to terminal and install bundle 
+	bundle install
+8.go to user model,
+	add following line,
+	has_secure_password 
+add validation required,
+ex,
+	 validates :name, :password, :address, :phone_number, :role_id, :email, presence: true
+9.Go to user controller,
+	add code for create to receive data from postman post request
+
+10.Post data from postman,
+
+{
+    "name": "Renu",
+    "email": "123@gmail.com",
+    "address": "12, aaakarshan ,bangalore",
+    "password": "12345",
+    "phone_number": "9826754324",
+    "role_id": 1
+}
+
+11.Check if it got added in table, goto postgres and check
+
+logindb=# select * from users;
+ id | name |     email     |          address          |                       password_digest                        | phone_number | role_id |         created_at         |         updated_at
+----+------+---------------+---------------------------+--------------------------------------------------------------+--------------+---------+----------------------------+----------------------------
+  1 | Renu | 123@gmail.com | 12, aaakarshan ,bangalore | $2a$12$.gPE3fbWlv4lrUmuU3990Ot/5JKAnfT/EcS522amdP1PtrRfngGVm | 9826754324   | 1       | 2023-01-15 19:06:22.277676 | 2023-01-15 19:06:22.277676
+(1 row)
+
+
+logindb=# \q
+
+12.We can also check if data added from interpreter:
+	rails c
+	User.all
+Below is the interpreter output
+
+irb(main):001:0> User.all
+  User Load (4.7ms)  SELECT "users".* FROM "users"
+=>
+[#<User:0x00000225ee5a9770
+  id: 1,
+  name: "Renu",
+  email: "123@gmail.com",
+  address: "12, aaakarshan ,bangalore",
+  password_digest: "[FILTERED]",
+  phone_number: "9826754324",
+  role_id: "1",                                                 
+  created_at: Sun, 15 Jan 2023 19:06:22.277676000 UTC +00:00,   
+  updated_at: Sun, 15 Jan 2023 19:06:22.277676000 UTC +00:00>]  
+irb(main):002:0>
+
+Note:  Password column FILTERED
+
+
+
+////////////////////////data sent via postman post///////////
+post      http://127.0.0.1:3000/user
+{
+    "name": "Renu",
+    "email": "123@gmail.com",
+    "address": "12, aaakarshan ,bangalore",
+    "password": "12345",
+    "phone_number": "9826754324",
+    "role_id": 1
+}
+
+{
+    "name": "Raj",
+    "email": "456@gmail.com",
+    "address": "12, aaakarshan ,bangalore",
+    "password": "67890",
+    "phone_number": "9826754321",
+    "role_id": 2
+}
+
+{
+    "name": "Hema",
+    "email": "Hema@gmail.com",
+    "address": "12, aaakarshan ,bangalore",
+    "password": "789",
+    "phone_number": "9826754361",
+    "role_id":1
+}
+
+check in postgre for all the data added:
+logindb=# select * from users;
+ id | name |     email      |          address          |                       password_digest                        | phone_number | role_id |         created_at         |         updated_at
+----+------+----------------+---------------------------+--------------------------------------------------------------+--------------+---------+----------------------------+----------------------------
+  1 | Renu | 123@gmail.com  | 12, aaakarshan ,bangalore | $2a$12$.gPE3fbWlv4lrUmuU3990Ot/5JKAnfT/EcS522amdP1PtrRfngGVm | 9826754324   | 1       | 2023-01-15 19:06:22.277676 | 2023-01-15 19:06:22.277676
+  2 | Raj  | 456@gmail.com  | 12, aaakarshan ,bangalore | $2a$12$9MqEgoMxVUmKMgxK0S18KeeWSZTNZWQLynJGiw23SdnTXydPuGQTS | 9826754321   | 2       | 2023-01-15 19:16:42.169264 | 2023-01-15 19:16:42.169264
+  3 | Hema | Hema@gmail.com | 12, aaakarshan ,bangalore | $2a$12$WGxOOKMqB9arYC.a3tsvZO3yvNXBFj640gt5BfLaryQGkyI2BvJLW | 9826754361   | 1       | 2023-01-15 19:17:54.839468 | 2023-01-15 19:17:54.839468
+(3 rows)
+
+
+logindb=# \q
+	
+////for registered email user check/////////////////////////////
+1.Create login controller
+	in controller,
+have create method and check find_id for login
+
+From postman send only login id and password(post to login route)

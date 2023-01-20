@@ -1,0 +1,2 @@
+class Bookstock < ApplicationRecord
+end
